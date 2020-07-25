@@ -1,0 +1,55 @@
+
+body {
+    background: #E8E0E0;
+    padding: 0;
+    margin: 0;
+    display: flex;
+
+    /* This centers our sketch horizontally. */
+    justify-content: center;
+
+    /* This centers our sketch vertically. */
+    align-items: center;
+}
+
+#scoreboard {
+    position: absolute;
+    top: 0px;
+    width: 800px;
+}
+
+.button {
+    position: relative;
+    left: 655px;
+    top: 10px;
+    background: black;
+    color: white;
+    font-size: 16px;
+    padding: 14px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background: lightgrey;
+    color: black;
+}
+
+#score {
+    position: relative;
+    right: 135px;
+    top: 20px;
+    font-size: 50px;
+}
+
+#trophy {
+    position: relative;
+    right: 150px;
+    top: 30px;
+    width: 50px;
+    height: 50px;
+}
+
+canvas {
+    position: absolute;
+    top: 100px;
+}
