@@ -3,11 +3,13 @@ let scl = 50;
 let food;
 let previousPressedKey;
 let score = 0;
-let myFont;
+const canvasWidth = 800;
+const canvasHeight = 700;
+
 
 
 function setup() {
-    createCanvas(800,700);
+    createCanvas(canvasWidth,canvasHeight);
     snake = new Snake();
     frameRate(8.5);
     foodLocation();
@@ -16,12 +18,12 @@ function setup() {
 function draw() {
     background(51);
     if (snake.eat(food)===true) {
-        foodLocation();
         addScore();
+        foodLocation();
     }
 
-    snake.death();
     snake.update();
+    snake.death();
     snake.show();
 
 
@@ -54,13 +56,13 @@ function keyPressed(){
     }
 
     if (keyCode === UP_ARROW){
-        snake.dir(0,-1);
+        snake.dir('UP');
     }else if (keyCode === DOWN_ARROW){
-        snake.dir(0,1);
+        snake.dir('DOWN');
     }else if (keyCode === RIGHT_ARROW) {
-        snake.dir(1,0);
+        snake.dir('RIGHT');
     }else if (keyCode === LEFT_ARROW) {
-        snake.dir(-1,0);
+        snake.dir('LEFT');
     }
 
     previousPressedKey = keyCode;
@@ -69,15 +71,15 @@ function keyPressed(){
 function Snake(){
     this.x = 0;
     this.y = 0;
-    this.xspeed = 0;
-    this.yspeed = 0;
-    this.total = 0;
+    this.xDirection = 0;
+    this.yDirection = 0;
+    this.snakeBody = 0;
     this.tail = [];
 
     this.eat = function(pos){
-        let d = dist(this.x, this.y, pos.x, pos.y); //distance between snake (x1,y1) and food (x2,y2)
-        if (d<1){
-            this.total++;
+        let headAndFoodProximity = dist(this.x, this.y, pos.x, pos.y);
+        if (headAndFoodProximity<1){
+            this.snakeBody++;
             return true;
         }else{
             return false;
@@ -85,22 +87,32 @@ function Snake(){
     }
 
     //receives x and y value in order to set the snake's direction
-    this.dir = function(x,y){
-        this.xspeed = x;
-        this.yspeed = y;
+    this.dir = function(direction){
+        if (direction === 'UP'){
+            this.xDirection = 0;
+            this.yDirection = -1;
+        } else if (direction === 'DOWN') {
+            this.xDirection = 0;
+            this.yDirection = 1;
+        } else if (direction === 'RIGHT') {
+            this.xDirection = 1;
+            this.yDirection = 0;
+        } else{
+            this.xDirection = -1;
+            this.yDirection = 0;
+        }
     }
 
     this.death = function(){
         let isDead = false;
-        for (let i=0; i<this.tail.length; i++){
-            let pos = this.tail[i];
-            let d = dist(this.x, this.y, pos.x, pos.y);
+        this.tail.forEach(val=>{
+            let d = dist(this.x, this.y, val.x, val.y);
             if (d < 1){
                 isDead = true;
             }
-        }
+        })
 
-        if (isDead===false && ((this.x<0 || this.x>=width-scl) || (this.y<0 || this.y>=height-scl))){
+        if (isDead===false && ((this.x<0 || this.x>=canvasWidth) || (this.y<0 || this.y>=canvasHeight))){
             isDead = true;
         }
 
@@ -114,28 +126,26 @@ function Snake(){
 
     this.update = function(){
 
-        if (this.total===this.tail.length){
-            for(let i=0; i<this.tail.length-1;i++){
-                this.tail[i] = this.tail[i+1];
-            }
+        if (this.snakeBody===this.tail.length){
+            this.tail.shift();
         }
-        this.tail[this.total-1] = createVector(this.x, this.y);
+        this.tail[this.snakeBody-1] = createVector(this.x, this.y);
 
-        this.x = this.x + this.xspeed*scl; //x moving to a new spot
-        this.y = this.y + this.yspeed*scl; //y moving to a new spot
+        this.x = this.x + this.xDirection*scl; //x moving to a new spot
+        this.y = this.y + this.yDirection*scl; //y moving to a new spot
 
         //makes sure snake is within the game bound
-        this.x = constrain(this.x, 0, width-scl);
-        this.y = constrain(this.y, 0, height-scl);
+        this.x = constrain(this.x, -1, canvasWidth+scl);
+        this.y = constrain(this.y, -1, canvasHeight+scl);
 
     }
 
     this.show = function(){
         //tail
-        for(let i=0; i<this.tail.length; i++){
+        this.tail.forEach(val=>{
             fill(255,255,102); //light yellow
-            rect(this.tail[i].x, this.tail[i].y, scl, scl);
-        }
+            rect(val.x, val.y, scl, scl);
+        })
 
         //head
         fill(244,202,22); //dark yellow
@@ -143,11 +153,9 @@ function Snake(){
     }
 }
 
-//picks random location for food
-//also makes sure the food is in an exact spot on the grid
 function foodLocation(){
-    let cols = floor(width/scl);
-    let rows = floor(height/scl);
+    let cols = floor(canvasWidth/scl);
+    let rows = floor(canvasHeight/scl);
     food = createVector(floor(random(cols)),floor(random(rows)));
     food.mult(scl);
 
@@ -159,12 +167,13 @@ function foodLocation(){
 
     food.isSuperFood = floor(random(0,11)) === 1;
     if (food.isSuperFood){
-        setTimeout(foodLocation,5000);
+        const superFoodTimeLimit = 5000;
+        setTimeout(foodLocation,superFoodTimeLimit);
     }
 }
 
 function addScore(){
-    score = score + (food.isSuperFood ? 100 : 10);
+    score += (food.isSuperFood ? 100 : 10);
     displayScore(score);
 }
 
